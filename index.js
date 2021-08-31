@@ -20,6 +20,8 @@ const upload = multer({ dest: '/temp/' })
 //app.use('/uploads', express.static('uploads'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res) {
+  
+  req.socket.setTimeout(10 * 60 * 1000)
  
  function getBaseLog(x, y) {
   return Math.log(y) / Math.log(x);
