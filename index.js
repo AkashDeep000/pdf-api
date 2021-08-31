@@ -84,8 +84,26 @@ if (compressStatus2) {
     if (compressPdf) {
       const file = await bucket.upload(output);
     console.log(file)
-    res.json(file)
+    if (file.size > fileLimit) {
+      const dif = (file.size - fileLimit)
+      console.log(dif)
+      const dpiDif = (Math.floor(Math.pow((dif / b), (1 / a))) - 1)
+      console.log(dpiDif)
+      const newDpi = (dpi - dpiDif)
+      console.log(newDpi)
+      const compressStatus = await compressPdf(input, output, newDpi);
+    if (compressPdf) {
+    const file = await bucket.upload(output);
+    console.log(file)
+      res.json(file)
+    }
+    
     } else {
+    const file = await bucket.upload(output);
+    console.log(file)
+    res.json(file)
+    }
+   } else {
       res.json({status : 404, error: "Error occured during Compression"})
 
     }
