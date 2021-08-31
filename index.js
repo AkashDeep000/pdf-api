@@ -30,15 +30,18 @@ app.post('/upload', upload.single('pdfFile'), async function (req, res) {
  const fileLimit =  req.body.pdfLimit * 1000;
  console.log(fileLimit)
 let dpi = 150;
-const time = Date.now();
-const output = `/temp/${time}.pdf`;
-const output1 = `/temp/${time}-1.pdf`;
-const output2 = `/temp/${time}-2.pdf`;
+const filename = `${req.file.filename}-output`;
+
+const output = `/temp/${filename}.pdf`;
+const output1 = `/temp/${filename}-1.pdf`;
+const output2 = `/temp/${filename}-2.pdf`;
 
 const input = req.file.path;
+console.log(input)
 
-const compressStatus1 = await compressPdf(input, output1, 100)
-const compressStatus2 = await compressPdf(input, output2, 150)
+const compressStatus1 = await compressPdf(input, output1, 25)
+
+const compressStatus2 = await compressPdf(input, output2, 50)
 
 
 if (compressStatus2) {
@@ -53,25 +56,22 @@ if (compressStatus2) {
   const fileSizeInBytes2 = fileStats2.size;
   console.log(fileSizeInBytes2)
   
-  if (fileLimit > fileSizeInBytes2) {
-    const file = await bucket.upload(output);
-    console.log(file)
-    res.json(file)
-  }else{
+  
     //dpi = Math.round(Math.sqrt((dpi * dpi) * (fileLimit / (fileSizeInBytes * 2))))
    //const a = Math.round(Math.sqrt((fileLimit / fileSizeInBytes) * dpi * dpi))
-   const a = getBaseLog((100 / 150), (fileSizeInBytes1 / fileSizeInBytes2))
+   const a = getBaseLog((25 / 50), (fileSizeInBytes1 / fileSizeInBytes2))
    console.log(a)
-   const b = (fileSizeInBytes1 / Math.pow(100,a))
+   const b = (fileSizeInBytes1 / Math.pow(25,a))
    dpi = (Math.floor(Math.pow((fileLimit / b), (1 / a))) - 1)
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
-    
-    const file = await bucket.upload(output);
+    if (compressPdf) {
+      const file = await bucket.upload(output);
     console.log(file)
     res.json(file)
+    }
     
-  }
+  
   
   
 }
