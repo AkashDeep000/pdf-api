@@ -25,16 +25,30 @@ app.post('/upload', upload.single('pdfFile'), async function (req, res) {
   return Math.log(y) / Math.log(x);
 }
 
-  
-  console.log(req.file)
- const fileLimit =  req.body.pdfLimit * 1000;
- console.log(fileLimit)
-let dpi = 150;
+if (!req.file) {
+  res.json({status : 404, error: "No pdf given"})
+}else{
+
 const filename = `${req.file.filename}-output`;
 
 const output = `/temp/${filename}.pdf`;
 const output1 = `/temp/${filename}-1.pdf`;
 const output2 = `/temp/${filename}-2.pdf`;
+
+if (!req.body.pdfLimit) {
+  const input = req.file.path;
+    const compressStatus = await compressPdf(input, output, 120);
+    if (compressPdf) {
+      const file = await bucket.upload(output);
+    console.log(file)
+    res.json(file)
+    }else {
+      res.json({status : 404, error: "Error occured during Compression"})
+
+    }
+} else {
+  const fileLimit =  req.body.pdfLimit * 1000;
+ console.log(fileLimit)
 
 const input = req.file.path;
 console.log(input)
@@ -62,13 +76,16 @@ if (compressStatus2) {
    const a = getBaseLog((25 / 50), (fileSizeInBytes1 / fileSizeInBytes2))
    console.log(a)
    const b = (fileSizeInBytes1 / Math.pow(25,a))
-   dpi = (Math.floor(Math.pow((fileLimit / b), (1 / a))) - 1)
+   const dpi = (Math.floor(Math.pow((fileLimit / b), (1 / a))) - 1)
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
     if (compressPdf) {
       const file = await bucket.upload(output);
     console.log(file)
     res.json(file)
+    } else {
+      res.json({status : 404, error: "Error occured during Compression"})
+
     }
     
   
@@ -76,9 +93,10 @@ if (compressStatus2) {
   
 }
 if(!compressStatus2){
-  res.send("Error")
+      res.json({status : 404, error: "Error occured during Compression"})
 }
-   
+}
+}
    
 });
 
