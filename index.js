@@ -6,18 +6,18 @@ app.use(cors());
 import multer from "multer"
 import exec from "await-exec";
 import fs from "fs"
-import Bucket from "backblaze";
-
-const bucket = Bucket("pdf-edited", {
-  id: "000ed926d44f3f90000000004",
-  key: "K0009dbfN4RKFi2eOdW7XMwbOzyYEdw",
-});
 
 
 
-const upload = multer({ dest: '/temp/' })
 
-//app.use('/uploads', express.static('uploads'))
+const upload = multer({ dest: './temp/' })
+app.all('/', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  next();
+ });
+ 
+app.use('/temp/', express.static('temp'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res) {
   
@@ -33,17 +33,15 @@ if (!req.file) {
 
 const filename = `${req.file.filename}-output`;
 
-const output = `/temp/${filename}.pdf`;
-const output1 = `/temp/${filename}-1.pdf`;
-const output2 = `/temp/${filename}-2.pdf`;
+const output = `./temp/${filename}.pdf`;
+const output1 = `./temp/${filename}-1.pdf`;
+const output2 = `./temp/${filename}-2.pdf`;
 
 if (!req.body.pdfLimit) {
   const input = req.file.path;
     const compressStatus = await compressPdf(input, output, 120);
     if (compressPdf) {
-      const file = await bucket.upload(output);
-    console.log(file)
-    res.json(file)
+    res.json({url: `/temp/${filename}.pdf`})
     }
     if(!compressPdf) {
       res.json({status : 404, error: "Error occured during Compression"})
@@ -62,7 +60,6 @@ const compressStatus2 = await compressPdf(input, output2, 50)
 
 if (compressStatus2) {
   
- await console.log(compressStatus2)
  
   const fileStats1 = await fs.statSync(output1);
   const fileSizeInBytes1 = fileStats1.size;
@@ -82,39 +79,17 @@ if (compressStatus2) {
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
     if (compressPdf) {
-      const file = await bucket.upload(output);
-    console.log(file)
-    if (file.size > fileLimit) {
-      const dif = (file.size - fileLimit)
-      console.log(dif)
-      const dpiDif = (Math.floor(Math.pow((dif / b), (1 / a))) - 1)
-      console.log(dpiDif)
-      const newDpi = (dpi - dpiDif)
-      console.log(newDpi)
-      const compressStatus = await compressPdf(input, output, newDpi);
-    if (compressPdf) {
-    const file = await bucket.upload(output);
-    console.log(file)
-      res.json(file)
+      
+    res.json({url: `/temp/${filename}.pdf`})
     }
+}
+      
+  
     
-    } else {
-    const file = await bucket.upload(output);
-    console.log(file)
-    res.json(file)
-    }
-   } else {
-      res.json({status : 404, error: "Error occured during Compression"})
+  
+  
+  
 
-    }
-    
-  
-  
-  
-}
-if(!compressStatus2){
-      res.json({status : 404, error: "Error occured during Compression"})
-}
 }
 }
    
