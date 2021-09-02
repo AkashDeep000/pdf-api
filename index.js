@@ -1,7 +1,9 @@
 import express from "express";
-//import cors from "cors";
+import cors from "cors";
 const app = express();
-//app.use(cors());
+app.use(cors({
+  origin: "*",
+}));
 
 import multer from "multer"
 import exec from "await-exec";
@@ -11,15 +13,16 @@ import fs from "fs"
 
 
 const upload = multer({ dest: './file/' })
+/*
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
- 
+ */
 app.use('/file/', express.static('file'))
 
-app.post('/upload', upload.single('pdfFile'), async function (req, res, next) {
+app.post('/upload', upload.single('pdfFile'), async function (req, res) {
      
   
   req.socket.setTimeout(10 * 60 * 1000)
