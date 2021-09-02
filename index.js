@@ -20,6 +20,9 @@ app.all('/', function(req, res, next) {
 app.use('/file/', express.static('file'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res) {
+     res.header("Access-Control-Allow-Origin", "*");
+   res.header('Access-Control-Allow-Methods', 'GET, POST');
+   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   
   req.socket.setTimeout(10 * 60 * 1000)
  
