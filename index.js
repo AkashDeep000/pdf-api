@@ -4,6 +4,9 @@ const app = express();
 import cors from "cors";
 app.use(cors({
   origin: "*",
+  allowedHeaders: ['Origin','X-Requested-With','Content-Type', 'Authorization'],
+  maxAge: 864000,
+   "preflightContinue": true,
 }));
 
 import multer from "multer"
@@ -25,8 +28,10 @@ app.use(function(req, res, next) {
 
 app.use('/file/', express.static('file'))
 
-app.post('/upload', upload.single('pdfFile'), async function (req, res) {
-  /*
+app.options('/upload', cors()) // enable pre-flight request for DELETE request
+
+app.post('/upload', upload.single('pdfFile'), async function (req, res, next) {
+  
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
   // another common pattern
@@ -36,7 +41,7 @@ app.post('/upload', upload.single('pdfFile'), async function (req, res) {
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   )
-  */
+  
   req.socket.setTimeout(10 * 60 * 1000)
  
  function getBaseLog(x, y) {
