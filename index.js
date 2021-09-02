@@ -1,11 +1,11 @@
 import express from "express";
 const app = express();
-/*
+
 import cors from "cors";
 app.use(cors({
   origin: "*",
 }));
-*/
+
 import multer from "multer"
 import exec from "await-exec";
 import fs from "fs"
@@ -26,7 +26,7 @@ app.use(function(req, res, next) {
 app.use('/file/', express.static('file'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res) {
-  
+  /*
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
   // another common pattern
@@ -36,7 +36,7 @@ app.post('/upload', upload.single('pdfFile'), async function (req, res) {
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   )
-  
+  */
   req.socket.setTimeout(10 * 60 * 1000)
  
  function getBaseLog(x, y) {
