@@ -10,14 +10,14 @@ import fs from "fs"
 
 
 
-const upload = multer({ dest: './temp/' })
+const upload = multer({ dest: './file/' })
 app.all('/', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
  });
  
-app.use('/temp/', express.static('temp'))
+app.use('/file/', express.static('file'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res) {
   
@@ -33,15 +33,15 @@ if (!req.file) {
 
 const filename = `${req.file.filename}-output`;
 
-const output = `./temp/${filename}.pdf`;
-const output1 = `./temp/${filename}-1.pdf`;
-const output2 = `./temp/${filename}-2.pdf`;
+const output = `./file/${filename}.pdf`;
+const output1 = `./file/${filename}-1.pdf`;
+const output2 = `./file/${filename}-2.pdf`;
 
 if (!req.body.pdfLimit) {
   const input = req.file.path;
     const compressStatus = await compressPdf(input, output, 120);
     if (compressPdf) {
-    res.json({url: `/temp/${filename}.pdf`})
+    res.json({url: `file/${filename}.pdf`})
     }
     if(!compressPdf) {
       res.json({status : 404, error: "Error occured during Compression"})
@@ -58,7 +58,7 @@ const compressStatus1 = await compressPdf(input, output1, 25)
 const compressStatus2 = await compressPdf(input, output2, 50)
 
 
-if (compressStatus2) {
+if (compressStatus2 && compressStatus1) {
   
  
   const fileStats1 = await fs.statSync(output1);
@@ -79,8 +79,18 @@ if (compressStatus2) {
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
     if (compressPdf) {
+   /* const fileStats = await fs.statSync(output);
+    const fileSizeInBytes = fileStats.size;
+    console.log(fileSizeInBytes)
+    if (fileSizeInBytes < fileLimit) {
+      res.json({url: `file/${filename}.pdf`})
+    }else {
       
-    res.json({url: `/temp/${filename}.pdf`})
+    }*/
+    res.json({url: `file/${filename}.pdf`})
+    }
+    if (!compressPdf) {
+      res.json({status : 404, error: "Error occured during Compression"})
     }
 }
       
