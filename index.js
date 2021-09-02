@@ -1,7 +1,7 @@
 import express from "express";
 //import cors from "cors";
-//const app = express();
-app.use(cors());
+const app = express();
+//app.use(cors());
 
 import multer from "multer"
 import exec from "await-exec";
@@ -12,7 +12,7 @@ import fs from "fs"
 
 const upload = multer({ dest: './file/' })
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "pdf-tool.vercel.app"); // update to match the domain you will make the request from
+  res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -76,7 +76,7 @@ if (compressStatus2 && compressStatus1) {
    const a = getBaseLog((25 / 50), (fileSizeInBytes1 / fileSizeInBytes2))
    console.log(a)
    const b = (fileSizeInBytes1 / Math.pow(25,a))
-   const dpi = (Math.floor(Math.pow((fileLimit / b), (1 / a))) - 1)
+   const dpi = (Math.floor(Math.pow((fileLimit / b), (1 / a))) )
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
     if (compressPdf) {
