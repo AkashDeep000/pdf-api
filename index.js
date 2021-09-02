@@ -87,7 +87,12 @@ if (compressStatus2 && compressStatus1) {
     }else {
       
     }*/
-    res.json({url: `file/${filename}.pdf`})
+    const fileStats = await fs.statSync(output);
+    const fileSizeInKB = Math.ceil(fileStats.size / 1000)
+    res.json({
+      url: `file/${filename}.pdf`,
+      size: fileSizeInKB,
+    })
     }
     if (!compressPdf) {
       res.json({status : 404, error: "Error occured during Compression"})
