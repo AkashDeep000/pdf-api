@@ -16,26 +16,15 @@ import fs from "fs"
 
 
 
-const upload = multer({ dest: './file/' })
-/*
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
-*/
+const upload = multer({ dest: '/mnt/file/' })
 
-app.use('/file/', express.static('file'))
-
-app.options('/upload', cors()) // enable pre-flight request for DELETE request
+app.use('/file/', express.static('/mnt/file'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res, next) {
   
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
-  // another common pattern
-  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -54,9 +43,9 @@ if (!req.file) {
 
 const filename = `${req.file.filename}-output`;
 
-const output = `./file/${filename}.pdf`;
-const output1 = `./file/${filename}-1.pdf`;
-const output2 = `./file/${filename}-2.pdf`;
+const output = `/mnt/file/${filename}.pdf`;
+const output1 = `/mnt/file/${filename}-1.pdf`;
+const output2 = `/mnt/file/${filename}-2.pdf`;
 
 if (!req.body.pdfLimit) {
   const input = req.file.path;
@@ -96,7 +85,7 @@ if (compressStatus2 && compressStatus1) {
    const a = getBaseLog((25 / 50), (fileSizeInBytes1 / fileSizeInBytes2))
    console.log(a)
    const b = (fileSizeInBytes1 / Math.pow(25,a))
-   const dpi = (Math.floor(Math.pow((fileLimit / b), (1 / a))) )
+   const dpi = (Math.round(Math.pow((fileLimit / b), (1 / a))) )
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
     if (compressPdf) {
