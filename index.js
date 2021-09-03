@@ -47,7 +47,7 @@ if (req.body.grayPdf == "true") {
 const grayPdfStatus =  await grayPdf(input, outputGray);
 input = outputGray;
 const fileStats = await fs.statSync(input);
-    const fileSizeInKB = Math.ceil(fileStats.size / 1000)
+    const fileSizeInKB = Math.ceil(fileStats.size / 1024)
     console.log(fileSizeInKB)
 }
 
@@ -62,7 +62,7 @@ if (!req.body.pdfLimit) {
       res.json({status : 404, error: "Error occured during Compression"})
     }
 } else {
-  const fileLimit =  req.body.pdfLimit * 1000;
+  const fileLimit =  req.body.pdfLimit * 1024;
  console.log(fileLimit)
 
 const compressStatus1 = await compressPdf(input, output1, 25)
@@ -100,7 +100,7 @@ if (compressStatus2 && compressStatus1) {
       
     }*/
     const fileStats = await fs.statSync(output);
-    const fileSizeInKB = Math.ceil(fileStats.size / 1000)
+    const fileSizeInKB = Math.ceil(fileStats.size / 1024)
     console.log(fileSizeInKB)
     res.json({
       url: `file/${filename}.pdf`,
