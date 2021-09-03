@@ -22,17 +22,8 @@ app.use('/file/', express.static('/mnt/file'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res, next) {
   
-  res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Access-Control-Allow-Origin', '*')
-
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  )
-  
   req.socket.setTimeout(10 * 60 * 1000)
- 
+// console.log(req)
  function getBaseLog(x, y) {
   return Math.log(y) / Math.log(x);
 }
@@ -41,14 +32,22 @@ if (!req.file) {
   res.json({status : 404, error: "No pdf given"})
 }else{
 
-const filename = `${req.file.filename}-output`;
-
+const filename = `${req.file.originalname.slice(0, -4)}-output-${Date.now()}`;
+//console.log(originalname)
 const output = `/mnt/file/${filename}.pdf`;
 const output1 = `/mnt/file/${filename}-1.pdf`;
 const output2 = `/mnt/file/${filename}-2.pdf`;
 
+const input = req.file.path;
+
+if (req.body.grayPdf) {
+  //console.log("is gray pdf")
+  await grayPdf(input, input);
+}
+
+
 if (!req.body.pdfLimit) {
-  const input = req.file.path;
+
     const compressStatus = await compressPdf(input, output, 120);
     if (compressPdf) {
     res.json({url: `file/${filename}.pdf`})
@@ -59,8 +58,7 @@ if (!req.body.pdfLimit) {
 } else {
   const fileLimit =  req.body.pdfLimit * 1000;
  console.log(fileLimit)
-
-const input = req.file.path;
+ 
 console.log(input)
 
 const compressStatus1 = await compressPdf(input, output1, 25)
@@ -85,7 +83,7 @@ if (compressStatus2 && compressStatus1) {
    const a = getBaseLog((25 / 50), (fileSizeInBytes1 / fileSizeInBytes2))
    console.log(a)
    const b = (fileSizeInBytes1 / Math.pow(25,a))
-   const dpi = (Math.round(Math.pow((fileLimit / b), (1 / a))) )
+   const dpi = (Math.ceil(Math.pow((fileLimit / b), (1 / a))) )
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
     if (compressPdf) {
@@ -130,6 +128,18 @@ async function compressPdf  (input, output, dpi) {
     console.log(err)
             return false
   }
+}
+  async function grayPdf  (input, output) {
+  try {
+    await  exec(
+      `gs \ -q -dNOPAUSE -dBATCH -dSAFER \ -sDEVICE=pdfwrite \ -dCompatibilityLevel=1.3 \ -dPDFSETTINGS=/default \ -dColorConversionStrategy=/Gray \ -dProcessColorModel=/DeviceGray \ -sOutputFile=${output} \ ${input}`)
+        console.log("gray done")
+        return true
+  } catch (err) {
+    console.log(err)
+            return false
+  }
+  }
 /* ,
       (err) => {
         if (err) {
@@ -141,7 +151,7 @@ async function compressPdf  (input, output, dpi) {
         })*/
   
         
-}
+
 
 app.listen(5000,() => {
 console.log("App is listening on Port 5000");
