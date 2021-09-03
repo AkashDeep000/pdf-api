@@ -32,17 +32,23 @@ if (!req.file) {
   res.json({status : 404, error: "No pdf given"})
 }else{
 
-const filename = `${req.file.originalname.slice(0, -4)}-output-${Date.now()}`;
+const filename = `${req.file.originalname.slice(0, -4).replace(/\s+/g, '-')}-output-${Date.now()}`;
 //console.log(originalname)
 const output = `/mnt/file/${filename}.pdf`;
+const outputGray = `/mnt/file/${filename}-gray.pdf`;
 const output1 = `/mnt/file/${filename}-1.pdf`;
 const output2 = `/mnt/file/${filename}-2.pdf`;
 
-const input = req.file.path;
+let input = await req.file.path;
+console.log(input)
 
-if (req.body.grayPdf) {
+if (req.body.grayPdf == "true") {
   //console.log("is gray pdf")
-  await grayPdf(input, input);
+const grayPdfStatus =  await grayPdf(input, outputGray);
+input = outputGray;
+const fileStats = await fs.statSync(input);
+    const fileSizeInKB = Math.ceil(fileStats.size / 1000)
+    console.log(fileSizeInKB)
 }
 
 
@@ -58,8 +64,6 @@ if (!req.body.pdfLimit) {
 } else {
   const fileLimit =  req.body.pdfLimit * 1000;
  console.log(fileLimit)
- 
-console.log(input)
 
 const compressStatus1 = await compressPdf(input, output1, 25)
 
@@ -97,6 +101,7 @@ if (compressStatus2 && compressStatus1) {
     }*/
     const fileStats = await fs.statSync(output);
     const fileSizeInKB = Math.ceil(fileStats.size / 1000)
+    console.log(fileSizeInKB)
     res.json({
       url: `file/${filename}.pdf`,
       size: fileSizeInKB,
@@ -121,7 +126,7 @@ if (compressStatus2 && compressStatus1) {
 async function compressPdf  (input, output, dpi) {
   try {
     await  exec(
-      `gs \ -q -dNOPAUSE -dBATCH -dSAFER \ -sDEVICE=pdfwrite \ -dCompatibilityLevel=1.3 \ -dPDFSETTINGS=/ebook \ -dEmbedAllFonts=true \ -dSubsetFonts=true \ -dAutoRotatePages=/None \ -dDownsampleColorImages=true \ -dColorImageDownsampleType=/Bicubic \ -dColorImageResolution=${dpi} \ -dGrayImageDownsampleType=/Bicubic \ -dGrayImageResolution=${dpi} \ -dMonoImageDownsampleType=/Subsample \ -dMonoImageResolution=${dpi} \ -sOutputFile=${output} \ ${input}`)
+      `gs \ -q -dNOPAUSE -dBATCH -dSAFER \ -sDEVICE=pdfwrite \ -dCompatibilityLevel=1.4 \ -dPDFSETTINGS=/ebook \ -dEmbedAllFonts=true \ -dSubsetFonts=true \ -dAutoRotatePages=/None \ -dDownsampleColorImages=true \ -dColorImageDownsampleType=/Bicubic \ -dColorImageResolution=${dpi} \ -dGrayImageDownsampleType=/Bicubic \ -dGrayImageResolution=${dpi} \ -dMonoImageDownsampleType=/Subsample \ -dMonoImageResolution=${dpi} \ -sOutputFile=${output} \ ${input}`)
         console.log("done")
         return true
   } catch (err) {
@@ -132,7 +137,11 @@ async function compressPdf  (input, output, dpi) {
   async function grayPdf  (input, output) {
   try {
     await  exec(
-      `gs \ -q -dNOPAUSE -dBATCH -dSAFER \ -sDEVICE=pdfwrite \ -dCompatibilityLevel=1.3 \ -dPDFSETTINGS=/default \ -dColorConversionStrategy=/Gray \ -dProcessColorModel=/DeviceGray \ -sOutputFile=${output} \ ${input}`)
+      `gs \
+ -sOutputFile=${output} \
+ -sDEVICE=pdfwrite \ -sColorConversionStrategy=Gray \ -dNOPAUSE \ -dBATCH \ ${input}`)
+ console.log(input)
+ console.log(output)
         console.log("gray done")
         return true
   } catch (err) {
