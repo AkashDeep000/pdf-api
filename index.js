@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config()
 import express from "express";
 const app = express();
 
@@ -13,7 +15,7 @@ import multer from "multer"
 import exec from "await-exec";
 import fs from "fs"
 
-
+const host = process.env.HOST
 
 
 const upload = multer({ dest: '/mnt/file/' })
@@ -32,7 +34,7 @@ if (!req.file) {
   res.json({status : 404, error: "No pdf given"})
 }else{
 
-const filename = `${req.file.originalname.slice(0, -4).replace(/\s+/g, '-')}-output-${Date.now()}`;
+const filename = `${req.file.originalname.slice(0, -4).replace(/\s+/g, '-').replace(/[{()}]/g, '_')}-output-${Date.now()}`;
 //console.log(originalname)
 const output = `/mnt/file/${filename}.pdf`;
 const outputGray = `/mnt/file/${filename}-gray.pdf`;
@@ -56,7 +58,7 @@ if (!req.body.pdfLimit) {
 
     const compressStatus = await compressPdf(input, output, 120);
     if (compressPdf) {
-    res.json({url: `file/${filename}.pdf`})
+    res.json({url: `https://${host}file/${filename}.pdf`})
     }
     if(!compressPdf) {
       res.json({status : 404, error: "Error occured during Compression"})
@@ -87,87 +89,89 @@ if (compressStatus2 && compressStatus1) {
    const a = getBaseLog((25 / 50), (fileSizeInBytes1 / fileSizeInBytes2))
    console.log(a)
    const b = (fileSizeInBytes1 / Math.pow(25,a))
-   const dpi = (Math.ceil(Math.pow((fileLimit / b), (1 / a))) )
+   const dpi = (Math.ceil(Math.pow((fileLimit / b), (1 / a))))
     console.log(dpi)
     const compressStatus = await compressPdf(input, output, dpi);
     
     if (compressPdf) {
 
     const fileStats = await fs.statSync(output);
-const fileSizeInKB = Math.ceil(fileStats.size / 1000)
+    const fileSizeInKB = fileStats.size / 1000
     console.log("fileSizeInKB",fileSizeInKB)
     
     const sizeDif = (req.body.pdfLimit - fileSizeInKB);
     console.log("sizeDif", sizeDif)
-    
+    if ((Math.sign(sizeDif) === 1) && sizeDif < 8) {
+      res.json({
+      url: `https://${host}file/${filename}.pdf`,
+      size: fileSizeInKB.toFixed(2),
+    })
+    }
   //indriment  
-    if ((Math.sign(sizeDif) === 1) && (sizeDif > 8)) {
+    if (sizeDif > 12) {
 
     const  newDpi = dpi + 1
     console.log(newDpi)
       const compressStatus = await compressPdf(input, `/mnt/file/${filename}-incr.pdf`, newDpi);
       const fileStats = await fs.statSync(`/mnt/file/${filename}-incr.pdf`);
-    const fileSizeInKB = fileStats.size / 1000
-    console.log(fileSizeInKB)
+      const fileSizeInKBIncr = fileStats.size / 1000
+      console.log(fileSizeInKBIncr)
     
-    if (req.body.pdfLimit > fileSizeInKB) {
 
 //extra
-  const sizeDif = (req.body.pdfLimit - fileSizeInKB);
-    console.log("sizeDif", sizeDif)
+  const sizeDif = (req.body.pdfLimit - fileSizeInKBIncr);
+    console.log("sizeDifIncr1", sizeDif)
     
   //indriment  222
-    if ((Math.sign(sizeDif) === 1) && (sizeDif > 10)) {
+    if (sizeDif > 12) {
 
     const  newDpi = dpi + 2
     console.log(newDpi)
       const compressStatus = await compressPdf(input, `/mnt/file/${filename}-incr1.pdf`, newDpi);
       const fileStats = await fs.statSync(`/mnt/file/${filename}-incr1.pdf`);
-    const fileSizeInKB = fileStats.size / 1000
-    console.log(fileSizeInKB)
+    const fileSizeInKBIncr2 = fileStats.size / 1000
+    console.log(fileSizeInKBIncr2)
     if (req.body.pdfLimit > fileSizeInKB) {
       res.json({
-      url: `file/${filename}-incr1.pdf`,
-      size: fileSizeInKB.toFixed(2),
+      url: `https://${host}file/${filename}-incr1.pdf`,
+      size: fileSizeInKBIncr2.toFixed(2),
     })
-    }else{
+   }else{
       res.json({
-      url: `file/${filename}-incr.pdf`,
-      size: fileSizeInKB.toFixed(2),
-    })
-    }
-
-    }else{
-      res.json({
-      url: `file/${filename}.pdf`,
-      size: fileSizeInKB.toFixed(2),
+      url: `https://${host}file/${filename}-incr.pdf`,
+      size: fileSizeInKBIncr.toFixed(2),
     })
     }
     }
     }
-    
 //decrimeni
     if (Math.sign(sizeDif) === -1) {
 
       const  newDpi = dpi - 1
       
-      const compressStatus = await compressPdf(input, `/mnt/file/${filename}-incr.pdf` , newDpi);
-      const fileStats = await fs.statSync(`/mnt/file/${filename}-incr.pdf`);
-    const fileSizeInKB = fileStats.size / 1000
-    console.log(fileSizeInKB)
-    if (req.body.pdfLimit > fileSizeInKB) {
+      const compressStatus = await compressPdf(input, `/mnt/file/${filename}-decr.pdf` , newDpi);
+      const fileStats = await fs.statSync(`/mnt/file/${filename}-decr.pdf`);
+    const fileSizeInKBDecr = fileStats.size / 1000
+    console.log("fileSizeInKBDecr",fileSizeInKBDecr)
+    
+        if (fileSizeInKBDecr > req.body.pdfLimit) {
+
+      const  newDpi = dpi - 2
+      
+      const compressStatus = await compressPdf(input, `/mnt/file/${filename}-decr1.pdf` , newDpi);
+      const fileStats = await fs.statSync(`/mnt/file/${filename}-decr1.pdf`);
+    const fileSizeInKBDecr1 = fileStats.size / 1000
+    console.log("fileSizeInKBDecr1",fileSizeInKBDecr1)
       res.json({
-      url: `file/${filename}-incr.pdf`,
+      url: `host/file/${filename}-decr1.pdf`,
       size: fileSizeInKB.toFixed(2),
     })
-    }else{
-      res.json({
-      url: `file/${filename}.pdf`,
-      size: fileSizeInKB.toFixed(2),
-    })
-    }
+ }}
+    
+      
+      
     }  
-    }
+    
     
     if (!compressPdf) {
       res.json({status : 404, error: "Error occured during Compression"})
