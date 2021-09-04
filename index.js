@@ -58,7 +58,7 @@ if (!req.body.pdfLimit) {
 
     const compressStatus = await compressPdf(input, output, 120);
     if (compressPdf) {
-    res.json({url: `https://${host}file/${filename}.pdf`})
+    res.json({url: `https://${host}/file/${filename}.pdf`})
     }
     if(!compressPdf) {
       res.json({status : 404, error: "Error occured during Compression"})
@@ -103,7 +103,7 @@ if (compressStatus2 && compressStatus1) {
     console.log("sizeDif", sizeDif)
     if ((Math.sign(sizeDif) === 1) && sizeDif < 8) {
       res.json({
-      url: `https://${host}file/${filename}.pdf`,
+      url: `https://${host}/file/${filename}.pdf`,
       size: fileSizeInKB.toFixed(2),
     })
     }
@@ -133,12 +133,12 @@ if (compressStatus2 && compressStatus1) {
     console.log(fileSizeInKBIncr2)
     if (req.body.pdfLimit > fileSizeInKB) {
       res.json({
-      url: `https://${host}file/${filename}-incr1.pdf`,
+      url: `https://${host}/file/${filename}-incr1.pdf`,
       size: fileSizeInKBIncr2.toFixed(2),
     })
    }else{
       res.json({
-      url: `https://${host}file/${filename}-incr.pdf`,
+      url: `https://${host}/file/${filename}-incr.pdf`,
       size: fileSizeInKBIncr.toFixed(2),
     })
     }
@@ -163,7 +163,7 @@ if (compressStatus2 && compressStatus1) {
     const fileSizeInKBDecr1 = fileStats.size / 1000
     console.log("fileSizeInKBDecr1",fileSizeInKBDecr1)
       res.json({
-      url: `host/file/${filename}-decr1.pdf`,
+      url: `https/${host}/file/${filename}-decr1.pdf`,
       size: fileSizeInKB.toFixed(2),
     })
  }}
