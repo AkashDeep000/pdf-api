@@ -57,8 +57,20 @@ app.route('/upload').post((req, res, next) => {
 app.use('/file/', express.static('/mnt/file'))
 
 app.post('/upload', async (req, res, next) => {
+   const apiTimeout = 10 * 60 * 1000;
+  // Set the timeout for all HTTP requests
+    req.setTimeout(apiTimeout, () => {
+        let err = new Error('Request Timeout');
+        err.status = 408;
+        next(err);
+    });
+    // Set the server response timeout for all HTTP requests
+    res.setTimeout(apiTimeout, () => {
+        let err = new Error('Service Unavailable');
+        err.status = 503;
+        next(err);
+    });
   
-  req.socket.setTimeout(10 * 60 * 60 * 1000)
   
   req.pipe(req.busboy); 
   // Pipe it trough busboy
