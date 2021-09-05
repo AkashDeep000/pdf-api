@@ -11,7 +11,7 @@ app.use(cors({
    "preflightContinue": true,
 }));
 
-import multer from "multer"
+//import multer from "multer"
 import exec from "await-exec";
 import fs from "fs-extra"
 const host = process.env.HOST
