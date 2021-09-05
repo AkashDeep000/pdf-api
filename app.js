@@ -50,9 +50,9 @@ const compressStatus1 = await compressPdf(input, output1, 25, pdfGray);
 const compressStatus2 = await compressPdf(input, output2, 50, pdfGray);
 //await Promise.all([compressStatus1, compressStatus2]);
 //Calculating Size of Compressed Pdf
-const fileStats1 = await fs.statSync(output1);
-const fileStats2 = await fs.statSync(output2);
-//await Promise.all([fileStats1,fileStats2])
+const fileStats1 = fs.statSync(output1);
+const fileStats2 = fs.statSync(output2);
+await Promise.all([fileStats1,fileStats2])
 console.log("fileStats1(25DPI)",(fileStats1.size/1000))
 console.log("fileStats2(50DPI)",(fileStats2.size/1000))
 //Calculating DPI
