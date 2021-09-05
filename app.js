@@ -24,7 +24,6 @@ app.use('/file/', express.static('/mnt/file'))
 
 app.post('/upload', upload.single('pdfFile'), async function (req, res, next) {
   
-  req.socket.setTimeout(10 * 60 * 1000)
 // console.log(req)
  function getBaseLog(x, y) {
   return Math.log(y) / Math.log(x);
