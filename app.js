@@ -151,19 +151,19 @@ const fileStats = await fs.statSync(output1);
 console.log("fileStats(Cal DPI Incr 1)",fileStats.size/1000)
 if (pdfLimit > (fileStats.size/1000)) {
   res.json({
-    url: `${host}/file/${filename}1.pdf`,
+    url: `${host}/file/${filename}-out1.pdf`,
     size: (fileStats.size/1000).toFixed(2)
   })
 }else{
   res.json({
-    url: `${host}/file/${filename}.pdf`,
+    url: `${host}/file/${filename}-out.pdf`,
     size: (fileStats.size/1000).toFixed(2)
   })
 }
 }
 if ((pdfLimit - (fileStats.size/1000) < 10) && Math.sign(pdfLimit - (fileStats.size/1000)) == 1) {
   res.json({
-    url: `${host}/file/${filename}.pdf`,
+    url: `${host}/file/${filename}-out.pdf`,
     size: (fileStats.size/1000).toFixed(2)
   })
   
@@ -175,7 +175,7 @@ const fileStats = await fs.statSync(output1);
 console.log("fileStats(Cal DPI Decr 1)",fileStats.size/1000)
 if (pdfLimit > (fileStats.size/1000)) {
   res.json({
-    url: `${host}/file/${filename}1.pdf`,
+    url: `${host}/file/${filename}-out1.pdf`,
     size: (fileStats.size/1000).toFixed(2)
   })
 }else{
@@ -184,7 +184,7 @@ if (pdfLimit > (fileStats.size/1000)) {
 const fileStats = await fs.statSync(output2);
 console.log("fileStats(Cal DPI Decr 2)",fileStats.size/1000)
   res.json({
-    url: `${host}/file/${filename}2.pdf`,
+    url: `${host}/file/${filename}-out2.pdf`,
     size: (fileStats.size/1000).toFixed(2)
   })
 }
