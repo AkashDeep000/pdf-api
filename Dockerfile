@@ -5,10 +5,13 @@ RUN apk update && apk add --no-cache nmap && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk update && \
     apk add --no-cache \
-      ghostscript
+      ghostscript \
+      imagemagick
 
 
 WORKDIR /app
+
+COPY policy.xml /etc/ImageMagick-6/policy.xml
 
 COPY package*json ./
 
@@ -23,4 +26,4 @@ ENV PORT=5000
 EXPOSE 5000
 
 
-CMD ["node", "./index.js" ]
+CMD ["node", "./app.js" ]

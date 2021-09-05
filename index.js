@@ -67,9 +67,9 @@ if (!req.body.pdfLimit) {
   const fileLimit =  req.body.pdfLimit * 1024;
  console.log(fileLimit)
 
-const compressStatus1 = await compressPdf(input, output1, 25)
+const compressStatus1 = compressPdf(input, output1, 25)
 
-const compressStatus2 = await compressPdf(input, output2, 50)
+const compressStatus2 = compressPdf(input, output2, 50)
 
 
 if (compressStatus2 && compressStatus1) {
@@ -163,7 +163,7 @@ if (compressStatus2 && compressStatus1) {
     const fileSizeInKBDecr1 = fileStats.size / 1000
     console.log("fileSizeInKBDecr1",fileSizeInKBDecr1)
       res.json({
-      url: `http/${host}/file/${filename}-decr1.pdf`,
+      url: `https/${host}/file/${filename}-decr1.pdf`,
       size: fileSizeInKB.toFixed(2),
     })
  }}
