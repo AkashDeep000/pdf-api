@@ -102,6 +102,8 @@ req.busboy.on("finish", async () => {
     // here you can do 
     const pdfLimit = formData.get('pdfLimit') //  '600'
     const pdfGray = formData.get('pdfGray') //  'true'
+    const pdfGrayValue = formData.get('pdfGrayValue') //  '50'
+    const pdfGrayDpi = formData.get('pdfGrayDpi') //  '150'
 
     // any other logic with formData here
 
@@ -113,19 +115,20 @@ req.busboy.on("finish", async () => {
    res.writeHead(404)
    res.send("no limit set")
  }
+ const input = `/mnt/file/${filename}.pdf`;
+   
+ const output = `/mnt/file/${filename}-out.pdf`;
+ const output1 = `/mnt/file/${filename}-out1.pdf`;
+ const output2 = `/mnt/file/${filename}-out2.pdf`;
  //has file and limit
- if (pdfLimit) {
+ if (pdfLimit && pdfGray !== "true") {
    
-   const input = `/mnt/file/${filename}.pdf`;
    
-   const output = `/mnt/file/${filename}-out.pdf`;
-   const output1 = `/mnt/file/${filename}-out1.pdf`;
-   const output2 = `/mnt/file/${filename}-out2.pdf`;
    
    
 //compress into Tow dpi to find perfect dpi
-const compressStatus1 = await compressPdf(input, output1, 25, pdfGray);
-const compressStatus2 = await compressPdf(input, output2, 50, pdfGray);
+const compressStatus1 = await compressPdf(input, output1, 25);
+const compressStatus2 = await compressPdf(input, output2, 50);
 //await Promise.all([compressStatus1, compressStatus2]);
 //Calculating Size of Compressed Pdf
 const fileStats1 = fs.statSync(output1);
@@ -141,12 +144,12 @@ const b = (fileStats1.size / Math.pow(25,a))
 const dpi = Math.pow((fileLimit / b), (1 / a))
 console.log(dpi)
 //Compress In Calculated DPI
-const compressStatus = await compressPdf(input, output, dpi, pdfGray);
+const compressStatus = await compressPdf(input, output, dpi);
 const fileStats = await fs.statSync(output);
 console.log("fileStats(Cal DPI)",fileStats.size/1000)
 if ((pdfLimit - (fileStats.size/1000)) > 10) {
   const newDpi = dpi +1 ;
-  const compressStatus = await compressPdf(input, output1, newDpi, pdfGray);
+  const compressStatus = await compressPdf(input, output1, newDpi);
 const fileStats = await fs.statSync(output1);
 console.log("fileStats(Cal DPI Incr 1)",fileStats.size/1000)
 if (pdfLimit > (fileStats.size/1000)) {
@@ -170,7 +173,7 @@ if ((pdfLimit - (fileStats.size/1000) < 10) && Math.sign(pdfLimit - (fileStats.s
 }
 if (pdfLimit < (fileStats.size/1000)) {
   const newDpi = dpi - 1 ;
-  const compressStatus = await compressPdf(input, output1, newDpi, pdfGray);
+  const compressStatus = await compressPdf(input, output1, newDpi);
 const fileStats = await fs.statSync(output1);
 console.log("fileStats(Cal DPI Decr 1)",fileStats.size/1000)
 if (pdfLimit > (fileStats.size/1000)) {
@@ -180,7 +183,7 @@ if (pdfLimit > (fileStats.size/1000)) {
   })
 }else{
   const newDpi = dpi - 2 ;
-  const compressStatus = await compressPdf(input, output2, newDpi, pdfGray);
+  const compressStatus = await compressPdf(input, output2, newDpi);
 const fileStats = await fs.statSync(output2);
 console.log("fileStats(Cal DPI Decr 2)",fileStats.size/1000)
   res.json({
@@ -191,8 +194,42 @@ console.log("fileStats(Cal DPI Decr 2)",fileStats.size/1000)
 }
 
  }
- //has file and limit End            
-            
+ //has file and limit and not gray End        
+if (pdfGray == "true") {
+  let dpi = 180;
+  let threshold = 55;
+  if (pdfGrayDpi < 180) {
+    dpi = pdfGrayDpi
+  }
+  if (pdfGrayValue) {
+    threshold = pdfGrayValue;
+  }
+  
+ console.log(dpi, threshold)
+ await grayPdf(input, output, dpi, threshold)
+ const fileStats = await fs.statSync(output);
+ console.log("Gray",fileStats.size/1000)
+ if (fileStats.size/1000 < pdfLimit) {
+   console;log("in limit")
+   res.json({
+    url: `${host}/file/${filename}-out.pdf`,
+    size: (fileStats.size/1000).toFixed(2)
+  })
+ }else{
+   const newDpi = Math.floor(pdfLimit/(fileStats.size/1000)*dpi) - 1
+    console.log(newDpi, threshold)
+ await grayPdf(input, output, newDpi, threshold)
+ const fileStats1 = await fs.statSync(output);
+ console.log("Gray",fileStats1.size/1000)
+ 
+   console.log("in limit")
+   res.json({
+    url: `${host}/file/${filename}-out.pdf`,
+    size: (fileStats1.size/1000).toFixed(2)
+  })
+ }
+  
+}            
             
   //finished          
 });
@@ -207,22 +244,8 @@ console.log("App is listening on Port 5000");
 })
 
 
-async function compressPdf  (input, output, dpiFr, pdfGray) {
-  console.log(pdfGray)
-  if (pdfGray == "true") {
-      try {
-        console.log("in gray")
-        const dpi = Math.floor(dpiFr)
-    await  exec(
-      `convert -density ${dpi} ${input} -depth 8 -type bilevel ${output}`)
-        console.log(`Compressed ✓ (${dpi})dpi`)
-        console.log(`Output: (${output})`)
-        return true
-  } catch (err) {
-    console.log(err)
-            return false
-  }
-  }else{
+async function compressPdf  (input, output, dpiFr) {
+ 
       try {
         const dpi = Math.ceil(dpiFr)
     //    console.log("input",input)
@@ -237,6 +260,29 @@ async function compressPdf  (input, output, dpiFr, pdfGray) {
     console.log(err)
             return false
   }
+  
+
+}
+
+async function grayPdf  (input, output, dpiFr, threshold) {
+  
+      try {
+        console.log("in gray")
+       /* if (dpiFr > 150) {
+          const dpi = 150
+        }else {*/
+          const dpi = Math.floor(dpiFr)
+      //  }
+        
+    await  exec(
+      `convert -density ${dpi} ${input} -threshold ${threshold}% -type bilevel -compress fax ${output}`)
+        console.log(`Compressed ✓ (${dpi})dpi`)
+        console.log(`Output: (${output})`)
+        return true
+  } catch (err) {
+    console.log(err)
+            return false
   }
 
 }
+
