@@ -210,7 +210,7 @@ if (pdfGray == "true") {
  const fileStats = await fs.statSync(output);
  console.log("Gray",fileStats.size/1000)
  if (fileStats.size/1000 < pdfLimit) {
-   console;log("in limit")
+   console.log("in limit")
    res.json({
     url: `${host}/file/${filename}-out.pdf`,
     size: (fileStats.size/1000).toFixed(2)
